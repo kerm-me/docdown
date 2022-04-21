@@ -16,11 +16,10 @@
 
 之后，再调用img2pdf包，转成pdf文件。
 
-这里我保留了图片和pdf两种形式，如果只需要一种的可以后期再删除。
 
 ## docin
 
-docin比book118稍微高级一些，界面包裹着一层鼠标层。里面是很多canvas。使用js动态绘制内容。不过在playwright面前这都不是事。docin默认加载所有页面div，只是canvas需要时间绘制，这里设置的等待时间为2秒。可以直接selectall获取所有div，然后一个个div，使用js代码截取canvs内容，转成png，之后和上面一样。
+docin比book118稍微高级一些，界面包裹着一层鼠标层。里面是很多canvas。使用js动态绘制内容。不过在playwright面前这都不是事。docin默认加载所有页面div，只是canvas需要时间绘制，这里设置的等待时间为0.5秒。可以直接selectall获取所有div，然后一个个div，使用js代码截取canvs内容，转成png，之后和上面一样。
 
 下载docin无需关闭代理。
 
@@ -53,5 +52,5 @@ python run.py 'https://max.book118.com/html/2017/1105/139064432.shtm'
 python run.py 'https://www.docin.com/p-1052644960.html'
 ```
 
-运行将会在运行目录下生成图片和pdf文档。
+运行将会在运行目录下生成pdf文档。
 

@@ -85,6 +85,7 @@ def run(playwright: Playwright) -> None:
     with open(title + ".pdf","wb") as f:
 	    f.write(img2pdf.convert(imagepath))
     
+    #删除文件：https://www.w3school.com.cn/python/python_file_remove.asp
     for image in imagepath:
         os.remove(image)
     

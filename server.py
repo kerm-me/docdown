@@ -102,6 +102,8 @@ socketio = SocketIO(app)
 @cross_origin(origins='*')
 @app.route('/download/<string:filename>')
 def download_image(filename):
+    # flask非常方便的下载功能：https://dev.to/nelsoncode/how-to-create-server-files-with-flask-4hdp
+    # https://blog.csdn.net/kangkanglou/article/details/79041949
     return send_from_directory(os.getcwd(), path=filename, as_attachment=True)
 
 @cross_origin(origins='*')
