@@ -2,6 +2,3 @@ img2pdf
 beautifulsoup4
 flask
 flask_socketio
-gevent-websocket
-eventlet
-gunicorn
