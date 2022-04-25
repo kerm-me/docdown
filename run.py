@@ -51,7 +51,7 @@ def run(playwright: Playwright) -> None:
             with open(str(i)+'.png',"wb") as code:
                 code.write(image_bytes)
     elif url[8:18]=='max.book11':
-        page.query_selector("//i[@class='icon icon-format icon-format-ppt']").is_visible()
+        # page.query_selector("//i[@class='icon icon-format icon-format-ppt']").is_visible()
         # 需要判断PPT或docx
         try:
 
