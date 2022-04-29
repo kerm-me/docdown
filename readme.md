@@ -2,7 +2,7 @@
 
 使用playwright强力驱动的book118&docin下载工具。
 
-支持范围：book118 doc ppt， docin doc。
+支持范围：book118 doc ppt pdf， docin doc。
 
 ## 使用说明
 
