@@ -128,6 +128,42 @@ def run(playwright: Playwright) -> None:
             pass
 
         try:
+            page.query_selector("//i[@class='icon icon-format icon-format-pdf']").is_visible()
+            # 直接下拉到底
+            while True:
+                try:
+                    el = page.query_selector("//button[@id='btn_preview_remain']").click()  
+                except:
+                    break
+
+            # 处理下载链接，为防止错误，这里再次进行下拉操作
+            # 直接全部下拉完成再进行获取似乎不行，尝试一张一张获取
+            divs = page.query_selector_all("//div[@class='webpreview-item']")
+            for i in range(len(divs)):
+                divs[i].scroll_into_view_if_needed()
+                while True:
+                    time.sleep(0.5)
+                    try:
+                        inner = divs[i].inner_html()
+                        soup = BeautifulSoup(inner,'lxml')
+                        imgurl = soup.img.attrs['src']
+                        break
+                    except:
+                        pass
+                # 注意这里的soup之后自动添加了头尾，所以需要手动定位到img标签上，获取这个元素的信息，然后使用attrs获取属性字典，最后使用src获取内容
+                # try
+                dir = str(i)+'.png'
+                imagepath.append(dir)
+                file = requests.get('https:'+imgurl)
+                with open(dir,"wb") as code:
+                    code.write(file.content)
+        except Exception as e:
+            # print(str(e))
+            # print('请至GitHub提交issue，附上下载链接')
+            pass
+        
+
+        try:
             page.query_selector("//i[@class='icon icon-format icon-format-ppt']").is_visible()
             page.query_selector("//button[@id='btn_preview_remain']").click()
             time.sleep(1.5)
