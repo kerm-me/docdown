@@ -236,6 +236,79 @@ def run(playwright: Playwright) -> None:
             # print('请至GitHub提交issue，附上下载链接')
 
 
+        try:
+            page.query_selector("//i[@class='icon icon-format icon-format-pptx']").is_visible()
+            page.query_selector("//button[@id='btn_preview_remain']").click()
+            time.sleep(1.5)
+            try:
+                
+                # 注意这里的预览界面实际上是写在一个iframe里面，所以虽然界面元素上有这些元素，但是直接使用selector是获取不了的。
+                # 要单独对iframe进行处理。由于iframe实际上相当于一个独立的网页，所以这里考虑的是直接获取链接之后访问，比较方便，
+                # 截图的效果也比较好。
+                # 对于iframe的处理，playwright提供了frame、frames、frame_locator等方案，但是这些方法都不是很好用，
+                # 使用这些方法得到的结果很多操作都不能够进行，算是一个残废。
+                # 这里是用的content的方法，参考：https://thompson-jonm.medium.com/handling-iframes-using-python-and-playwright-da46d1c64196
+                framelink = page.wait_for_selector("//iframe").content_frame().url
+                print('您可以直接访问PPT预览（无广告）：\n'+framelink)
+                # frame = page.frame_locator('.preview-iframe').
+                # frame.locator("//span[@id='PageCount']").inner_text()
+                # framelink = page.query_selector("//iframe").get_attribute('src')
+                page.goto(framelink)
+                time.sleep(1.5)
+                # nums = int(frame.locator("//span[@id='PageCount']").inner_text())
+                # # nums = int(page.query_selector("//span[@class='counts']").inner_text()[3:])
+                # for i in range(nums):
+                #     time.sleep(0.5)
+                #     # 此元素应该在界面中，但是无法获取#
+                #     # ipage！
+                #     frame.locator("//div[@id='slide"+str(i)+"']").screenshot(path=str(i)+".png")
+                #     imagepath.append(str(i)+'.png')
+                #     # page.locator(".header").screenshot(path="screenshot.png")
+                #     frame.locator("//div[@id='pageNext']").click()
+
+
+                # 比较生草的一点就是这个PPT默认是没有放映动画的，所以直接下载会得到空白。
+                # 如果等待动画一个个放映，不仅判定条件比较难写，而且时间上也会消耗很多，。
+                # 这里考虑的是直接拖到最后一个，然后从后往前进行截取
+
+                # 获取总页数
+                nums = int(page.locator("//span[@id='PageCount']").inner_text())
+                while True:
+                    # 快速点击下一步 跳到最后一页。
+                    time.sleep(0.1)
+                    page.locator("//div[@class='btmRight']").click()
+                    if int(page.locator("//span[@id='PageIndex']").inner_text()) == nums:
+                        # 可能有BUG
+                        # 防止最后一页还有一堆动画，这里随便设置一个10次，懒得做检测了
+                        for i in range(10):
+                            time.sleep(0.1)
+                            page.locator("//div[@class='btmRight']").click()
+                        break
+                # page.locator("//div[@id='pagePrev']").click()
+                # nums = int(page.query_selector("//span[@class='counts']").inner_text()[3:])
+                # 对于这个执行的个数，总之就是非常迷惑，这里多设置一次，防止没有执行完
+                for i in range(nums+1):
+                    time.sleep(0.5)
+                    # 此元素应该在界面中，但是无法获取#
+                    # ipage！
+                    pageid = int(page.locator("//span[@id='PageIndex']").inner_text())
+                    # 直接使用截图功能
+                    page.locator("//div[@id='slide"+str(pageid-1)+"']").screenshot(path=str(pageid)+".png")
+                    imagepath.append(str(pageid)+'.png')
+                    # page.locator(".header").screenshot(path="screenshot.png")
+                    # pageid = int(page.locator("//span[@id='PageIndex']").inner_text())
+                    # page.locator("//div[@id='pageNext']").click()
+                    page.locator("//div[@id='pagePrev']").click()
+                imagepath.reverse()
+            except Exception as e :
+                print(str(e))
+                print('下载PPT失败，请至GitHub提交issue，附上下载链接')
+        except Exception as e:
+            pass
+            # print(str(e))
+            # print('请至GitHub提交issue，附上下载链接')
+
+
 
 
     # 通过list set组合降重不能保证其顺序。
