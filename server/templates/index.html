@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <!--
+    WARNING! Make sure that you match all Quasar related
+    tags to the same version! (Below it's "@2.6.6")
+  -->
+
+  <head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons" rel="stylesheet" type="text/css">
+    <link href="https://cdn.jsdelivr.net/npm/quasar@2.6.6/dist/quasar.prod.css" rel="stylesheet" type="text/css">
+    
+    <style>
+        .box-card{
+        width: 600px;
+        }
+
+        @media screen and (min-width:px) {
+        .box-card{
+            width: 100%;
+        }
+        }
+    </style>
+</head>
+
+  <body>
+    <!-- example of injection point where you write your app template -->
+    <div id="q-app">
+        <div>
+            <input v-model="url" type="text" label="输入链接" />
+            <button  @click="start">开始下载</button>
+            <!-- <q-btn color="primary"  label="下载到本地"  /> -->
+            
+            <br>
+            <p>{{status}}</p>
+            <a :href='downloadlink'>下载到本地</a>
+        </div>
+    </div>
+    <!-- Add the following at the end of your body tag -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quasar@2.6.6/dist/quasar.umd.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quasar@2.6.6/dist/lang/zh-CN.umd.prod.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.3"></script> -->
+    <script src="https://cdn.bootcss.com/qs/6.7.0/qs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" ></script>
+    <script>
+            var socket = io();
+            var baseuri = 'http://127.0.0.1:8000/download/'
+            const app = Vue.createApp({
+                    data() {
+                        return {
+                            status:'未开始',
+                            downloadlink:'',
+                            url:'https://www.docin.com/p-1052644960.html'
+                        }
+                    },
+                    methods: {
+                        start: function(){
+                            socket.emit('download',{url : this.url});
+                        }
+                    }
+                })
+                // app.use(Quasar)
+            const vm = app.mount("#q-app");
+            
+            // # https://v3.cn.vuejs.org/guide/data-methods.html#data-property
+            socket.on('start',function() {
+                // alert('开始下载')
+                vm.$data.status = '开始下载'
+            })
+            socket.on('done',function(res){
+                vm.$data.status = '已完成'
+                vm.$data.downloadlink = baseuri+res['filename']
+            })
+        // $(document).ready(function () {
+
+        // })
+    </script>
+  </body>
+  </html>
