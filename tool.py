@@ -141,5 +141,3 @@ def download_from_url(url):
         for image in imagepath:
             os.remove(image)
         return filename_
-
-download_from_url('https://max.book118.com/html/2017/1105/139064432.shtm')
