@@ -53,15 +53,17 @@ def handle_baidu(page):
 def handle_book118(page):
     imagepath = []
     file_type = 'None'
-    while True:
-        try:
-            page.query_selector("//button[@id='btn_preview_remain']").click()
-            time.sleep(0.2)
-        except:
-            break
     file_type = page.query_selector("//*[@id='main']/div[1]/div[1]/div/i").get_attribute('class')[-3:]
 
+    
+
     if file_type in ['doc','ocx','pdf']:
+        while True:
+            try:
+                page.query_selector("//button[@id='btn_preview_remain']").click()
+                time.sleep(0.2)
+            except:
+                break  
         divs = page.query_selector_all("//div[@class='webpreview-item']")
         for i in range(len(divs)):
             divs[i].scroll_into_view_if_needed()
@@ -112,7 +114,7 @@ def handle_book118(page):
 
 def download_from_url(url):
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=False)
+        browser = playwright.webkit.launch(headless=False)
         context = browser.new_context()
         page = context.new_page()
         page.set_viewport_size({"width": 800, "height": 800})
