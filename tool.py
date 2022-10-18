@@ -6,6 +6,7 @@ import img2pdf
 import base64
 import os
 
+
 # 使用 canvas 进行截图
 def handle_docin(page):
     imagepath = []
@@ -48,6 +49,8 @@ def handle_baidu(page):
                 print(str(e))
                 pass
     return imagepath
+
+
 
 # 直接下载图片
 def handle_book118(page):
@@ -112,9 +115,52 @@ def handle_book118(page):
 
     return imagepath
 
+
+
+def handle_doc88(page):
+    import re
+    imagepath = []
+    file_type = 'None'
+    file_type = re.findall("格式：([a-zA-Z]*)", page.query_selector("//*[@id='box1']/div/div/div[1]").text_content())[
+        0].lower()
+
+    while True:
+        try:
+            page.query_selector("//*[@id='continueButton']").click()
+            time.sleep(0.2)
+        except AttributeError:
+            break
+        except Exception as e:
+            print(f'some error occured：{e}')
+
+    js = """id => {return document.getElementsByTagName("canvas")[id].toDataURL("image/png")};"""
+
+
+    divs = page.query_selector_all("//div[@class='outer_page']")
+    for i in range(len(divs)):
+        divs[i].scroll_into_view_if_needed()
+        while True:
+            time.sleep(0.5)
+            try:
+                data = page.evaluate(js, i*2+1)
+                image_base64 = data.split(",")[1]
+                image_bytes = base64.b64decode(image_base64)
+                imagepath.append(str(i) + '.png')
+
+                break
+            except:
+                pass
+        with open(str(i) + '.png', "wb") as code:
+            code.write(image_bytes)
+
+    return imagepath
+
 def download_from_url(url):
     with sync_playwright() as playwright:
-        browser = playwright.webkit.launch(headless=False)
+        try:
+            browser = playwright.chromium.launch(headless=False)
+        except:
+            browser = playwright.webkit.launch(headless=False)
         context = browser.new_context()
         page = context.new_page()
         page.set_viewport_size({"width": 800, "height": 800})
@@ -128,6 +174,8 @@ def download_from_url(url):
             imagepath = handle_baidu(page)
         elif url[8:18]=='max.book11':
             imagepath = handle_book118(page)
+        elif url[8:18]=='www.doc88.':
+            imagepath = handle_doc88(page)
 
         temp=[]
         [temp.append(i) for i in imagepath if not i in temp]
