@@ -1,3 +1,4 @@
+from PIL import Image
 from playwright.sync_api import Playwright, sync_playwright
 import time
 from bs4 import BeautifulSoup
@@ -12,7 +13,7 @@ def handle_docin(page):
     imagepath = []
     command = """id => {
                 elements = document.getElementsByTagName('canvas')[id] 
-                return elements.toDataURL("image/png")};"""
+                return elements.toDataURL("image/jpeg")};"""
     divs = page.query_selector_all("//div[@class='model panel scrollLoading']")
     for i in range(len(divs)):
         divs[i].scroll_into_view_if_needed()
@@ -22,11 +23,11 @@ def handle_docin(page):
                 data = page.evaluate(command, i)
                 image_base64 = data.split(",")[1]
                 image_bytes = base64.b64decode(image_base64)
-                imagepath.append(str(i) + '.png')
+                imagepath.append(str(i) + '.jpg')
                 break
             except:
                 pass
-        with open(str(i) + '.png', "wb") as code:
+        with open(str(i) + '.jpg', "wb") as code:
             code.write(image_bytes)
     return imagepath
 
@@ -68,6 +69,7 @@ def handle_book118(page):
                 break
         divs = page.query_selector_all("//div[@class='webpreview-item']")
         for i in range(len(divs)):
+
             divs[i].scroll_into_view_if_needed()
             while True:
                 time.sleep(0.5)
@@ -78,7 +80,9 @@ def handle_book118(page):
                     break
                 except:
                     pass
-            dir = str(i) + '.png'
+
+            dir = str(i) + '.jpg'
+
             imagepath.append(dir)
             file = requests.get('https:' + imgurl)
             with open(dir, "wb") as code:
@@ -104,8 +108,10 @@ def handle_book118(page):
             for i in range(nums + 1):
                 time.sleep(0.5)
                 pageid = int(page.locator("//span[@id='PageIndex']").inner_text())
-                page.locator("//div[@id='slide" + str(pageid - 1) + "']").screenshot(path=str(pageid) + ".png")
-                imagepath.append(str(pageid) + '.png')
+
+                page.locator("//div[@id='slide" + str(pageid - 1) + "']").screenshot(path=str(pageid) + ".jpg")
+                imagepath.append(str(pageid) + '.jpg')
+
                 page.locator("//div[@id='pagePrev']").click()
             imagepath.reverse()
         except Exception as e:
@@ -131,7 +137,9 @@ def handle_doc88(page):
         except Exception as e:
             print(f'some error occured：{e}')
 
-    js = """id => {return document.getElementsByTagName("canvas")[id].toDataURL("image/png")};"""
+
+    js = """id => {return document.getElementsByTagName("canvas")[id].toDataURL("image/jpeg")};"""
+
 
     divs = page.query_selector_all("//div[@class='outer_page']")
     for i in range(len(divs)):
@@ -142,12 +150,14 @@ def handle_doc88(page):
                 data = page.evaluate(js, i * 2 + 1)
                 image_base64 = data.split(",")[1]
                 image_bytes = base64.b64decode(image_base64)
-                imagepath.append(str(i) + '.png')
+                imagepath.append(str(i) + '.jpg')
+
 
                 break
             except:
                 pass
-        with open(str(i) + '.png', "wb") as code:
+        with open(str(i) + '.jpg', "wb") as code:
+
             code.write(image_bytes)
 
     return imagepath
@@ -181,11 +191,21 @@ def download_from_url(url):
         context.close()
         browser.close()
         filename_ = title + ".pdf"
+
+        # 将图片中alpha透明通道删除
+        for image in imagepath:
+            img = Image.open(image)
+            # 将PNG中RGBA属性变为RGB，即可删掉alpha透明度通道
+            img.convert('RGB').save(image)
+            img.close()
+
         try:
             with open(filename_, "wb") as f:
                 f.write(img2pdf.convert(imagepath))
-        except:
+        except Exception as e:
             print("下载失败，请注意关闭代理，如果还有问题，请至GitHub提交issue，附上下载链接")
+            print(e)
+        # 删除图片
         for image in imagepath:
             os.remove(image)
         return filename_
