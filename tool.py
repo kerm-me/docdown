@@ -80,7 +80,9 @@ def handle_book118(page):
                     break
                 except:
                     pass
+
             dir = str(i) + '.jpg'
+
             imagepath.append(dir)
             file = requests.get('https:' + imgurl)
             with open(dir, "wb") as code:
@@ -106,8 +108,10 @@ def handle_book118(page):
             for i in range(nums + 1):
                 time.sleep(0.5)
                 pageid = int(page.locator("//span[@id='PageIndex']").inner_text())
+
                 page.locator("//div[@id='slide" + str(pageid - 1) + "']").screenshot(path=str(pageid) + ".jpg")
                 imagepath.append(str(pageid) + '.jpg')
+
                 page.locator("//div[@id='pagePrev']").click()
             imagepath.reverse()
         except Exception as e:
