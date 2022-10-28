@@ -213,3 +213,9 @@ def download_from_url(url):
         for image in imagepath:
             os.remove(image)
         return filename_
+
+
+if __name__ == '__main__':
+    #测试用
+    url = ''
+    download_from_url(url)
