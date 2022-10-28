@@ -133,15 +133,23 @@ def handle_doc88(page):
         except Exception as e:
             print(f'some error occured：{e}')
 
-    js = """id => {return document.getElementsByTagName("canvas")[id].toDataURL("image/jpeg")};"""
+    js = """id => {var temp = document.getElementsByTagName("canvas")[id].getAttribute("lz")
+    if (temp==null){
+        return false
+    }else{return document.getElementsByTagName("canvas")[id].toDataURL("image/jpeg")}
+    };"""
 
+    data = False
     divs = page.query_selector_all("//div[@class='outer_page']")
     for i in range(len(divs)):
         divs[i].scroll_into_view_if_needed()
         while True:
-            time.sleep(0.5)
+
             try:
-                data = page.evaluate(js, i * 2 + 1)
+                # 检测是否加载完成
+                while not data:
+                    time.sleep(0.5)
+                    data = page.evaluate(js, i * 2 + 1)
                 image_base64 = data.split(",")[1]
                 image_bytes = base64.b64decode(image_base64)
                 imagepath.append(str(i) + '.jpg')
