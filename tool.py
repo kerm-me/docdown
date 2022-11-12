@@ -180,7 +180,7 @@ def download_from_url(url):
         time.sleep(1)
         title = page.query_selector("//title").inner_text()
 
-        if url[8:18] == 'www.docin.':
+        if '.docin.' in url[8:18] :
             imagepath = handle_docin(page)
         elif url[8:18] == 'wenku.baid':
             imagepath = handle_baidu(page)
