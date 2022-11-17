@@ -7,7 +7,7 @@ import img2pdf
 import base64
 import os
 
-
+global SLEEP_TIME
 # 使用 canvas 进行截图
 def handle_docin(page):
     imagepath = []
@@ -19,7 +19,7 @@ def handle_docin(page):
         divs[i].scroll_into_view_if_needed()
         while True:
             try:
-                time.sleep(0.5)
+                time.sleep(SLEEP_TIME)
                 data = page.evaluate(command, i)
                 image_base64 = data.split(",")[1]
                 image_bytes = base64.b64decode(image_base64)
@@ -44,7 +44,7 @@ def handle_baidu(page):
         divs[i].scroll_into_view_if_needed()
         while True:
             try:
-                time.sleep(1)
+                time.sleep(SLEEP_TIME)
                 divs[i].screenshot(path=str(i) + '.jpeg', quality=100, type='jpeg')
                 imagepath.append(str(i) + '.jpeg')
                 break
@@ -64,7 +64,7 @@ def handle_book118(page):
         while True:
             try:
                 page.query_selector("//button[@id='btn_preview_remain']").click()
-                time.sleep(0.2)
+                time.sleep(SLEEP_TIME)
             except:
                 break
         divs = page.query_selector_all("//div[@class='webpreview-item']")
@@ -72,7 +72,7 @@ def handle_book118(page):
 
             divs[i].scroll_into_view_if_needed()
             while True:
-                time.sleep(0.5)
+                time.sleep(SLEEP_TIME)
                 try:
                     inner = divs[i].inner_html()
                     soup = BeautifulSoup(inner, 'lxml')
@@ -90,7 +90,7 @@ def handle_book118(page):
 
     elif file_type in ['ppt', 'ptx']:
         page.query_selector("//button[@id='btn_preview_remain']").click()
-        time.sleep(1.5)
+        time.sleep(SLEEP_TIME)
         try:
             framelink = page.wait_for_selector("//iframe").content_frame().url
             print('您可以直接访问PPT预览（无广告）：\n' + framelink)
@@ -98,15 +98,15 @@ def handle_book118(page):
             time.sleep(1.5)
             nums = int(page.locator("//span[@id='PageCount']").inner_text())
             while True:
-                time.sleep(0.1)
+                time.sleep(SLEEP_TIME)
                 page.locator("//div[@class='btmRight']").click()
                 if int(page.locator("//span[@id='PageIndex']").inner_text()) == nums:
                     for i in range(10):
-                        time.sleep(0.1)
+                        time.sleep(SLEEP_TIME)
                         page.locator("//div[@class='btmRight']").click()
                     break
             for i in range(nums + 1):
-                time.sleep(0.5)
+                time.sleep(SLEEP_TIME)
                 pageid = int(page.locator("//span[@id='PageIndex']").inner_text())
 
                 page.locator("//div[@id='slide" + str(pageid - 1) + "']").screenshot(path=str(pageid) + ".jpg")
@@ -131,39 +131,47 @@ def handle_doc88(page):
     while True:
         try:
             page.query_selector("//*[@id='continueButton']").click()
-            time.sleep(0.2)
+            time.sleep(SLEEP_TIME)
         except AttributeError:
             break
         except Exception as e:
             print(f'some error occured：{e}')
 
 
-    js = """id => {return document.getElementsByTagName("canvas")[id].toDataURL("image/jpeg")};"""
+    js = """id => {var temp = document.getElementsByTagName("canvas")[id].getAttribute("lz")
+    if (temp==null){
+        return false
+    }else{return document.getElementsByTagName("canvas")[id].toDataURL("image/jpeg")}
+    };"""
 
 
+    data = False
     divs = page.query_selector_all("//div[@class='outer_page']")
     for i in range(len(divs)):
         divs[i].scroll_into_view_if_needed()
         while True:
-            time.sleep(0.5)
+
             try:
-                data = page.evaluate(js, i * 2 + 1)
+                # 检测是否加载完成
+                while not data:
+                    time.sleep(SLEEP_TIME)
+                    data = page.evaluate(js, i * 2 + 1)
                 image_base64 = data.split(",")[1]
                 image_bytes = base64.b64decode(image_base64)
                 imagepath.append(str(i) + '.jpg')
-
 
                 break
             except:
                 pass
         with open(str(i) + '.jpg', "wb") as code:
-
             code.write(image_bytes)
 
     return imagepath
 
 
-def download_from_url(url):
+def download_from_url(url,sleep_time=1):
+    global SLEEP_TIME
+    SLEEP_TIME= sleep_time
     with sync_playwright() as playwright:
         try:
             browser = playwright.chromium.launch(headless=False)
@@ -173,10 +181,10 @@ def download_from_url(url):
         page = context.new_page()
         page.set_viewport_size({"width": 800, "height": 800})
         page.goto(url)
-        time.sleep(1)
+        time.sleep(SLEEP_TIME)
         title = page.query_selector("//title").inner_text()
 
-        if url[8:18] == 'www.docin.':
+        if '.docin.' in url[8:18] :
             imagepath = handle_docin(page)
         elif url[8:18] == 'wenku.baid':
             imagepath = handle_baidu(page)
@@ -209,3 +217,9 @@ def download_from_url(url):
         for image in imagepath:
             os.remove(image)
         return filename_
+
+
+if __name__ == '__main__':
+    #测试用
+    url = 'https://max.book118.com/html/2022/1028/6113124131005010.shtm'
+    download_from_url(url)
